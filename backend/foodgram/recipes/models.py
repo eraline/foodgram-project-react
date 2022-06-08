@@ -20,16 +20,18 @@ class Recipe(models.Model):
     image =  models.CharField(max_length=200)
     cooking_time = models.IntegerField()
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    tags = models.ManyToManyField(
-        Tag)
+    # tags = models.ManyToManyField(
+    #     Tag,
+    #     related_name='tags')
     ingredients = models.ManyToManyField(
         Ingredient,
-        through='RecipeIngredient')
+        through='RecipeIngredient',
+        related_name='ingredients')
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
+    amount = models.IntegerField()
 
 class ShoppingCart(models.Model):
     owner = models.ForeignKey(
