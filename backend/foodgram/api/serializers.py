@@ -9,9 +9,12 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
+    # id = serializers.ReadOnlyField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    unit = serializers.ReadOnlyField(source='ingredient.unit')
     class Meta:
         model = RecipeIngredient
-        fields = ('ingredient','amount')
+        fields = ('name', 'unit', 'amount')
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -35,5 +38,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         #     cur_tag, status = Tag.objects.get_or_create(**tag)
         #     recipe.tags.add(cur_tag)
         for ingredient in ingredients:
-            RecipeIngredient.objects.get_or_create(recipe=recipe, **ingredient)
+            amount = ingredient.pop('amount')
+            cur_ingredient = Ingredient.objects.get_or_create(**ingredient)
+            RecipeIngredient.objects.get_or_create(recipe=recipe, amount=amount, **ingredient)
         return recipe
+
