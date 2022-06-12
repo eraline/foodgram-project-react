@@ -2,7 +2,7 @@ from dataclasses import fields
 from email.policy import default
 from rest_framework import serializers
 
-from recipes.models import Tag, Recipe, Ingredient, RecipeIngredient, User
+from recipes.models import Tag, Recipe, Ingredient, RecipeIngredient, User, Favourite
 
 class TagSerializer(serializers.ModelSerializer):
     
@@ -62,3 +62,21 @@ class RecipeSerializer(serializers.ModelSerializer):
             RecipeIngredient.objects.get_or_create(recipe=recipe, amount=amount, **ingredient)
         return recipe
 
+
+class RecipeShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'cooking_time', 'image')
+
+
+class FavouriteSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    # recipe = RecipeShortSerializer(read_only=True)
+    id = serializers.ReadOnlyField(source='recipe.id')
+    name = serializers.ReadOnlyField(source='recipe.name')
+    cooking_time = serializers.ReadOnlyField(source='recipe.cooking_time')
+    image = serializers.ReadOnlyField(source='recipe.image')
+
+    class Meta:
+        model = Favourite
+        fields = ('id','name','cooking_time','image','user')

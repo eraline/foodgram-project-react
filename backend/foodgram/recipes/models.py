@@ -47,7 +47,7 @@ class Favourite(models.Model):
         on_delete=models.CASCADE,
         db_index=True
     )
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='favourites')
 
 class Following(models.Model):
     user = models.ForeignKey(
