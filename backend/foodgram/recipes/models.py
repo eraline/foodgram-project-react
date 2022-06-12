@@ -20,9 +20,9 @@ class Recipe(models.Model):
     image =  models.CharField(max_length=200)
     cooking_time = models.IntegerField()
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    # tags = models.ManyToManyField(
-    #     Tag,
-    #     related_name='tags')
+    tags = models.ManyToManyField(
+        Tag,
+        related_name='tags')
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient',
