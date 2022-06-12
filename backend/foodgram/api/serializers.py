@@ -30,7 +30,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class RecipeSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientSerializer(many=True, required=False, source='recipeingredient_set')
-    author = serializers.ReadOnlyField(
+    author = UserSerializer(
         read_only=True, 
         default=serializers.CurrentUserDefault())
     class Meta:
