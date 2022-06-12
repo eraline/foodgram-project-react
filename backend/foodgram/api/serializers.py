@@ -29,7 +29,10 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = '__all__' 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    ingredients = RecipeIngredientSerializer(many=True, required=False, source='recipeingredient_set')
+    ingredients = RecipeIngredientSerializer(
+        many=True, 
+        required=False, 
+        source='recipeingredient_set')
     author = UserSerializer(
         read_only=True, 
         default=serializers.CurrentUserDefault())
@@ -42,6 +45,18 @@ class RecipeSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
+        for ingredient in ingredients:
+            amount = ingredient.pop('amount')
+            RecipeIngredient.objects.get_or_create(recipe=recipe, amount=amount, **ingredient)
+        return recipe
+
+    def update(self, instance, validated_data):
+        ingredients = validated_data.pop('recipeingredient_set')
+        tags = validated_data.pop('tags')
+        recipe = instance
+        # recipe = Recipe.objects.get(**validated_data)
+        recipe.tags.set(tags)
+        RecipeIngredient.objects.filter(recipe=recipe).delete()
         for ingredient in ingredients:
             amount = ingredient.pop('amount')
             RecipeIngredient.objects.get_or_create(recipe=recipe, amount=amount, **ingredient)
