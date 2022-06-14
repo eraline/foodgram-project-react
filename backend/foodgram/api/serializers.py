@@ -1,11 +1,9 @@
-from dataclasses import fields
-from email.policy import default
 from rest_framework import serializers
 
 from recipes.models import Tag, Recipe, Ingredient, RecipeIngredient, User, Favourite
 
+
 class TagSerializer(serializers.ModelSerializer):
-    
     class Meta:
         model = Tag
         fields = '__all__'
@@ -36,10 +34,26 @@ class RecipeSerializer(serializers.ModelSerializer):
     author = UserSerializer(
         read_only=True, 
         default=serializers.CurrentUserDefault())
+
     class Meta:
         model = Recipe
         fields = '__all__'
-# 
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        tags = representation.pop('tags')
+        result = []
+        for tag in tags:
+            cur_tag = Tag.objects.get(pk=tag)
+            result.append(
+                {"id": cur_tag.id,
+                "name": cur_tag.name,
+                "color": cur_tag.color,
+                "slug": cur_tag.slug}
+            )
+        representation['tags'] = result
+        return representation
+
     def create(self, validated_data):
         ingredients = validated_data.pop('recipeingredient_set')
         tags = validated_data.pop('tags')
@@ -54,29 +68,16 @@ class RecipeSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('recipeingredient_set')
         tags = validated_data.pop('tags')
         recipe = instance
-        # recipe = Recipe.objects.get(**validated_data)
         recipe.tags.set(tags)
         RecipeIngredient.objects.filter(recipe=recipe).delete()
         for ingredient in ingredients:
             amount = ingredient.pop('amount')
             RecipeIngredient.objects.get_or_create(recipe=recipe, amount=amount, **ingredient)
         return recipe
+    
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'cooking_time', 'image')
-
-
-class FavouriteSerializer(serializers.ModelSerializer):
-    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    # recipe = RecipeShortSerializer(read_only=True)
-    id = serializers.ReadOnlyField(source='recipe.id')
-    name = serializers.ReadOnlyField(source='recipe.name')
-    cooking_time = serializers.ReadOnlyField(source='recipe.cooking_time')
-    image = serializers.ReadOnlyField(source='recipe.image')
-
-    class Meta:
-        model = Favourite
-        fields = ('id','name','cooking_time','image','user')
