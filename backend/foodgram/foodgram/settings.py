@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'users',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_filters',
     'djoser',
 ]
 
@@ -86,7 +87,7 @@ DATABASES = {
     }
 }
 
-
+AUTH_USER_MODEL = 'users.User'
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
@@ -105,6 +106,17 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Djoser
+
+# DJOSER = {
+# 'SERIALIZERS': {
+#         'user_create': 'api.serializers.UserCreateSerializer',
+#     },
+# }
+
+# DJOSER = {
+#     'LOGIN_FIELD':'EMAIL_FIELD'
+# }
 # REST Framework
 
 REST_FRAMEWORK = {
@@ -115,6 +127,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 6,
 }
 
 # Internationalization

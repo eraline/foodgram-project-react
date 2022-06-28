@@ -17,7 +17,7 @@ class Ingredient(models.Model):
 class Recipe(models.Model):
     name = models.CharField(max_length=200, unique=True)
     description = models.TextField()
-    image =  models.CharField(max_length=200)
+    image =  models.ImageField()
     cooking_time = models.IntegerField()
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     tags = models.ManyToManyField(
@@ -39,7 +39,7 @@ class ShoppingCart(models.Model):
         on_delete=models.CASCADE,
         db_index=True)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
-        related_name='recipes')
+        related_name='shopping_cart')
 
 class Favourite(models.Model):
     user = models.ForeignKey(
@@ -49,13 +49,12 @@ class Favourite(models.Model):
     )
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='favourites')
 
-class Following(models.Model):
+class Follow(models.Model):
     user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        db_index=True
-    ),
-    following = models.ForeignKey(
-        User, on_delete=models.CASCADE
+        User, on_delete=models.CASCADE,
+        related_name='follower'
     )
-
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='following'
+    )
