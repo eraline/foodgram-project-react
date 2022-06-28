@@ -12,7 +12,7 @@ from users.models import User
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
         if data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')  # format ~= data:image/X,
+            format, imgstr = data.split(';base64,') 
             ext = format.split('/')[-1]
             timestamp = int(dt.datetime.now().timestamp() * 1000)
             data = ContentFile(
@@ -61,8 +61,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     author = UserSerializer(
         read_only=True, 
         default=serializers.CurrentUserDefault())
-    is_in_shopping_cart = serializers.SerializerMethodField()
-    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.ReadOnlyField(default=False)
+    is_favorite = serializers.ReadOnlyField()
     image = Base64ImageField()
 
     class Meta:
@@ -105,19 +105,19 @@ class RecipeSerializer(serializers.ModelSerializer):
             RecipeIngredient.objects.get_or_create(recipe=recipe, amount=amount, **ingredient)
         return recipe
     
-    def get_is_in_shopping_cart(self, obj):
-        user = self.context['request'].user
-        if not user.is_anonymous:
-            if ShoppingCart.objects.filter(owner=user, recipe=obj).exists():
-                return True
-        return False
+    # def get_is_in_shopping_cart(self, obj):
+    #     user = self.context['request'].user
+    #     if not user.is_anonymous:
+    #         if ShoppingCart.objects.filter(owner=user, recipe=obj).exists():
+    #             return True
+    #     return False
     
-    def get_is_favorited(self, obj):
-        user = self.context['request'].user
-        if not user.is_anonymous:
-            if Favourite.objects.filter(user=user, recipe=obj).exists():
-                return True
-        return False
+    # def get_is_favorited(self, obj):
+    #     user = self.context['request'].user
+    #     if not user.is_anonymous:
+    #         if Favourite.objects.filter(user=user, recipe=obj).exists():
+    #             return True
+    #     return False
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):

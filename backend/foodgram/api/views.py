@@ -1,6 +1,6 @@
 import pandas as pd
 from django.shortcuts import get_object_or_404
-from django.db.models import Sum
+from django.db.models import Sum, Exists, OuterRef
 from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from djoser.views import UserViewSet
 
 from .viewsets import RetrieveListViewset
+from .filters import RecipeFilter
 from recipes.models import (Tag, Recipe, Ingredient, 
                             Favourite, ShoppingCart, RecipeIngredient,
                             Follow, User)
@@ -22,11 +23,29 @@ class TagViewSet(RetrieveListViewset):
     serializer_class = TagSerializer
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
+    # queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options', 'trace']
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('tags', 'author', 'is_in_shopping_cart')
+    filterset_class = RecipeFilter
+    # filterset_fields = ('tags', 'author', 'is_in_shopping_cart')
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_anonymous:
+            user_id = -1
+        else:
+            user_id = user.pk
+        
+        queryset = Recipe.objects.all().annotate(
+            is_in_shopping_cart=Exists(
+                ShoppingCart.objects.filter(owner__pk=user_id, recipe=OuterRef('pk'))
+                ),
+            is_favorite=Exists(
+                Favourite.objects.filter(user__pk=user_id, recipe=OuterRef('pk'))
+                )
+        )
+        return queryset
 
     def perform_create(self, serializer):
         current_user = self.request.user
