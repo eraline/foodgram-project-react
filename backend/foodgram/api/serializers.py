@@ -54,8 +54,6 @@ class UserSerializer(serializers.ModelSerializer):
             if Follow.objects.filter(user=user, author=obj).exists():
                 return True
         return False
-        
-
 
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -113,20 +111,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             amount = ingredient.pop('amount')
             RecipeIngredient.objects.get_or_create(recipe=recipe, amount=amount, **ingredient)
         return recipe
-    
-    # def get_is_in_shopping_cart(self, obj):
-    #     user = self.context['request'].user
-    #     if not user.is_anonymous:
-    #         if ShoppingCart.objects.filter(owner=user, recipe=obj).exists():
-    #             return True
-    #     return False
-    
-    # def get_is_favorited(self, obj):
-    #     user = self.context['request'].user
-    #     if not user.is_anonymous:
-    #         if Favourite.objects.filter(user=user, recipe=obj).exists():
-    #             return True
-    #     return False
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
@@ -134,17 +118,33 @@ class RecipeShortSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'name', 'cooking_time', 'image')
 
-# class FollowingSerializer(serializers.ModelSerializer):
-#     user = serializers.HiddenField(
-#          default=serializers.CurrentUserDefault())
-#     
-#     # email = serializers.ReadOnlyField(source='following.email')
-#     # id = serializers.ReadOnlyField(source='following.id')
-#     # username = serializers.ReadOnlyField(source='following.username')
-#     # first_name = serializers.ReadOnlyField(source='following.first_name')
-#     # last_name = serializers.ReadOnlyField(source='following.last_name')
-# 
-#     class Meta:
-#         model = Following
-#         fields = ('user','following')
-#         read_only_field = ('following',)
+class SubscriptionSerializer(serializers.ModelSerializer):
+    # recipes = RecipeShortSerializer(many=True)
+    recipes = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name',
+            'last_name', 'is_subscribed', 'recipes', 'recipes_count')
+        read_only_fields = ('email', 'id', 'username', 'first_name',
+            'last_name', 'is_subscribed', 'recipes', 'recipes_count')
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        if not user.is_anonymous:
+            if Follow.objects.filter(user=user, author=obj).exists():
+                return True
+        return False
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
+    
+    def get_recipes(self, obj):
+        recipes = obj.recipes.all().order_by('-pk')
+        query_params = self.context['request'].query_params
+        if 'recipes_limit' in query_params:
+            recipes_limit = int(query_params['recipes_limit'])
+            recipes = recipes[:recipes_limit]
+        serializer = RecipeShortSerializer(recipes, many=True)
+        return serializer.data

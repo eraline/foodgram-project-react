@@ -19,7 +19,9 @@ class Recipe(models.Model):
     description = models.TextField()
     image =  models.ImageField()
     cooking_time = models.IntegerField()
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, 
+        on_delete=models.CASCADE,
+        related_name='recipes')
     tags = models.ManyToManyField(
         Tag,
         related_name='tags')

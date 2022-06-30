@@ -15,7 +15,7 @@ from recipes.models import (Tag, Recipe, Ingredient,
                             Follow, User)
 
 from .serializers import (TagSerializer, RecipeSerializer, IngredientSerializer,
-                          RecipeShortSerializer, UserSerializer)
+                          RecipeShortSerializer, UserSerializer, SubscriptionSerializer)
 
 
 class TagViewSet(RetrieveListViewset):
@@ -109,20 +109,16 @@ class UserViewSet(UserViewSet):
         if request.method == 'POST':
             Follow.objects.get_or_create(user=user, author=following)
             context = {'request': request}
-            serializer = UserSerializer(instance=following, context=context)
+            serializer = SubscriptionSerializer(instance=following, context=context)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         obj = get_object_or_404(Follow, user=user, author=following)
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    
-    # def get_queryset(self):
-    #     user = self.request.user
-    #     if user.is_anonymous:
-    #         user_id = -1
-    #     else:
-    #         user_id = user.pk
-    #     queryset = User.objects.all().annotate(
-    #         is_subscribed=Exists(Follow.objects.filter(user__pk=user_id, author=OuterRef('pk')
-    #     )))
-    #     return queryset
+    @action(methods=['get'], detail=False)
+    def subscriptions(self, request):
+        user = request.user
+        queryset = User.objects.filter(following__user=user)
+        context = {'request': request}
+        serializer = SubscriptionSerializer(queryset, context=context, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
