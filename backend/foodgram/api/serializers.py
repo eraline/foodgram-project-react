@@ -5,7 +5,7 @@ from django.core.files.base import ContentFile
 from rest_framework import serializers
 from djoser.serializers import UserCreateSerializer
 
-from recipes.models import Tag, Recipe, Ingredient, RecipeIngredient, ShoppingCart, Favourite
+from recipes.models import Tag, Recipe, Ingredient, RecipeIngredient, Follow
 from users.models import User
 
 
@@ -17,7 +17,7 @@ class Base64ImageField(serializers.ImageField):
             timestamp = int(dt.datetime.now().timestamp() * 1000)
             data = ContentFile(
                 base64.b64decode(imgstr),
-                name=f'/media/recipes/images/img{str(timestamp)}.{ext}')
+                name=f'media/recipes/images/img{str(timestamp)}.{ext}')
         return super().to_internal_value(data)
         
 
@@ -42,10 +42,19 @@ class UserCreateSerializer(UserCreateSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name')
-        read_only_fields = ('email', 'id', 'username', 'first_name', 'last_name')
+        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed')
+        read_only_fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed')
+    
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        if not user.is_anonymous:
+            if Follow.objects.filter(user=user, author=obj).exists():
+                return True
+        return False
+        
 
 
 class IngredientSerializer(serializers.ModelSerializer):

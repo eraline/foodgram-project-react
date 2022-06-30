@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Exists, OuterRef
 from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, pagination
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from djoser.views import UserViewSet
@@ -28,6 +28,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options', 'trace']
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+    pagination_class = pagination.LimitOffsetPagination
     # filterset_fields = ('tags', 'author', 'is_in_shopping_cart')
 
     def get_queryset(self):
@@ -97,12 +98,31 @@ class IngredientViewSet(RetrieveListViewset):
     serializer_class = IngredientSerializer
 
 class UserViewSet(UserViewSet):
+    
+    serializer_class = UserSerializer
 
-    @action(methods=['post'], detail=True)
+    @action(methods=['post', 'delete'], detail=True)
     def subscribe(self, request, **kwargs):
         user = request.user
-        user_id = kwargs['id']
-        following = get_object_or_404(User, pk=user_id)
-        Follow.objects.get_or_create(user=user, author=following)
-        serializer = UserSerializer(instance=following)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        following_id = kwargs['id']
+        following = get_object_or_404(User, pk=following_id)
+        if request.method == 'POST':
+            Follow.objects.get_or_create(user=user, author=following)
+            context = {'request': request}
+            serializer = UserSerializer(instance=following, context=context)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        obj = get_object_or_404(Follow, user=user, author=following)
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    
+    # def get_queryset(self):
+    #     user = self.request.user
+    #     if user.is_anonymous:
+    #         user_id = -1
+    #     else:
+    #         user_id = user.pk
+    #     queryset = User.objects.all().annotate(
+    #         is_subscribed=Exists(Follow.objects.filter(user__pk=user_id, author=OuterRef('pk')
+    #     )))
+    #     return queryset
