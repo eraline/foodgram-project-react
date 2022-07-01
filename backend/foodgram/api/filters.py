@@ -8,4 +8,4 @@ class RecipeFilter(filters.FilterSet):
     tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
     class Meta:
         model = Recipe
-        fields = ['author', 'is_in_shopping_cart', 'is_favorite', 'tags']
+        fields = ['user', 'is_in_shopping_cart', 'is_favorite', 'tags']

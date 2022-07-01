@@ -11,6 +11,7 @@ from djoser.views import UserViewSet
 from .viewsets import RetrieveListViewset
 from .filters import RecipeFilter
 from .pagination import CustomPagination
+from .permissions import IsAuthorOrReadOnly
 from recipes.models import (Tag, Recipe, Ingredient, 
                             Favourite, ShoppingCart, RecipeIngredient,
                             Follow, User)
@@ -29,6 +30,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     pagination_class = CustomPagination
+    permission_classes = (IsAuthorOrReadOnly,)
 
     def get_queryset(self):
         user = self.request.user
@@ -39,7 +41,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         
         queryset = Recipe.objects.all().annotate(
             is_in_shopping_cart=Exists(
-                ShoppingCart.objects.filter(owner__pk=user_id, recipe=OuterRef('pk'))
+                ShoppingCart.objects.filter(user__pk=user_id, recipe=OuterRef('pk'))
                 ),
             is_favorite=Exists(
                 Favourite.objects.filter(user__pk=user_id, recipe=OuterRef('pk'))
@@ -49,7 +51,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         current_user = self.request.user
-        serializer.save(author=current_user)
+        serializer.save(user=current_user)
     
     @action(methods=['post', 'delete'], detail=True)
     def favorite(self, request, pk=None):
@@ -71,13 +73,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=pk)
         if request.method == 'POST':
             ShoppingCart.objects.get_or_create(
-                recipe=recipe, owner=request.user)
+                recipe=recipe, user=request.user)
             serializer = RecipeShortSerializer(instance=recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         obj = get_object_or_404(
             ShoppingCart,
             recipe=recipe,
-            owner=request.user)
+            user=request.user)
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
@@ -85,7 +87,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         user = request.user
         data = RecipeIngredient.objects.filter(
-            recipe__shopping_cart__owner=user
+            recipe__shopping_cart__user=user
             ).values('ingredient__name', 'ingredient__unit'
             ).annotate(amount=Sum('amount'))
         content = pd.DataFrame(data).to_string(header=None, index=None)
