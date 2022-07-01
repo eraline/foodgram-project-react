@@ -108,11 +108,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Djoser
 
-# DJOSER = {
-# 'SERIALIZERS': {
-#         'user_create': 'api.serializers.UserCreateSerializer',
-#     },
-# }
+DJOSER = {
+    'SERIALIZERS': {
+        'current_user': 'api.serializers.UserSerializer',
+    },
+}
 
 # DJOSER = {
 #     'LOGIN_FIELD':'EMAIL_FIELD'

@@ -10,6 +10,7 @@ from djoser.views import UserViewSet
 
 from .viewsets import RetrieveListViewset
 from .filters import RecipeFilter
+from .pagination import CustomPagination
 from recipes.models import (Tag, Recipe, Ingredient, 
                             Favourite, ShoppingCart, RecipeIngredient,
                             Follow, User)
@@ -23,13 +24,11 @@ class TagViewSet(RetrieveListViewset):
     serializer_class = TagSerializer
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    # queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options', 'trace']
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     pagination_class = pagination.LimitOffsetPagination
-    # filterset_fields = ('tags', 'author', 'is_in_shopping_cart')
 
     def get_queryset(self):
         user = self.request.user
@@ -97,9 +96,11 @@ class IngredientViewSet(RetrieveListViewset):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
 
+
 class UserViewSet(UserViewSet):
     
     serializer_class = UserSerializer
+    pagination_class = CustomPagination
 
     @action(methods=['post', 'delete'], detail=True)
     def subscribe(self, request, **kwargs):
