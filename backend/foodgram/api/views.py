@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Exists, OuterRef
 from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, status, pagination
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from djoser.views import UserViewSet
@@ -28,7 +28,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options', 'trace']
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
-    pagination_class = pagination.LimitOffsetPagination
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         user = self.request.user

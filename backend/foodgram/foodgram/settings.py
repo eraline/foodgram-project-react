@@ -112,12 +112,23 @@ DJOSER = {
     'SERIALIZERS': {
         'current_user': 'api.serializers.UserSerializer',
     },
+    'PERMISSIONS': {
+    'activation': ['rest_framework.permissions.AllowAny'],
+    'password_reset': ['rest_framework.permissions.AllowAny'],
+    'password_reset_confirm': ['rest_framework.permissions.AllowAny'],
+    'set_password': ['rest_framework.permissions.CurrentUserOrAdmin'],
+    'username_reset': ['rest_framework.permissions.AllowAny'],
+    'username_reset_confirm': ['rest_framework.permissions.AllowAny'],
+    'set_username': ['rest_framework.permissions.CurrentUserOrAdmin'],
+    'user_create': ['rest_framework.permissions.AllowAny'],
+    'user_delete': ['rest_framework.permissions.IsAdminUser'],
+    'user': ['rest_framework.permissions.AllowAny'],
+    'user_list': ['rest_framework.permissions.AllowAny'],
+    'token_create': ['rest_framework.permissions.AllowAny'],
+    'token_destroy': ['rest_framework.permissions.IsAuthenticated'],
+},
+    'HIDE_USERS': False,
 }
-
-# DJOSER = {
-#     'LOGIN_FIELD':'EMAIL_FIELD'
-# }
-# REST Framework
 
 REST_FRAMEWORK = {
     
@@ -127,8 +138,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     ),
-    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    # 'PAGE_SIZE': 6,
+    'PAGE_SIZE': 6,
 }
 
 # Internationalization
