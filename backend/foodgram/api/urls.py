@@ -7,7 +7,7 @@ from django.urls import include, path
 router = routers.DefaultRouter()
 router.register(r'tags', views.TagViewSet)
 router.register(r'recipes', views.RecipeViewSet, basename='recipes')
-router.register(r'ingredient', views.IngredientViewSet)
+router.register(r'ingredients', views.IngredientViewSet)
 router.register(r'users', views.UserViewSet)
 # router.register(r'recipe/(?P<recipe_id>\d+)/favourite',
 #     views.FavouritesViewSet, basename='favourites')

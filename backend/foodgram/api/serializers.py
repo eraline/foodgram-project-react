@@ -30,10 +30,10 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(source='ingredient',
         queryset=Ingredient.objects.all())
     name = serializers.ReadOnlyField(source='ingredient.name')
-    unit = serializers.ReadOnlyField(source='ingredient.unit')
+    measurement_unit = serializers.ReadOnlyField(source='ingredient.measurement_unit')
     class Meta:
         model = RecipeIngredient
-        fields = ('id','name', 'amount','unit')
+        fields = ('id','name','measurement_unit', 'amount')
 
 class UserCreateSerializer(UserCreateSerializer):
     class Meta:
@@ -51,7 +51,7 @@ class UserSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
         if not user.is_anonymous:
-            if Follow.objects.filter(user=user, author=obj).exists():
+            if Follow.objects.filter(user=user, following=obj).exists():
                 return True
         return False
 
@@ -69,7 +69,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         read_only=True, 
         default=serializers.CurrentUserDefault())
     is_in_shopping_cart = serializers.ReadOnlyField(default=False)
-    is_favorite = serializers.ReadOnlyField()
+    is_favorited = serializers.ReadOnlyField()
     image = Base64ImageField()
 
     class Meta:
@@ -133,7 +133,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
         if not user.is_anonymous:
-            if Follow.objects.filter(user=user, author=obj).exists():
+            if Follow.objects.filter(user=user, following=obj).exists():
                 return True
         return False
 
@@ -141,7 +141,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         return obj.recipes.count()
     
     def get_recipes(self, obj):
-        recipes = obj.recipes.all().order_by('-pk')
+        recipes = obj.recipes.all().order_by('-created_at', '-pk')
         query_params = self.context['request'].query_params
         if 'recipes_limit' in query_params:
             recipes_limit = int(query_params['recipes_limit'])

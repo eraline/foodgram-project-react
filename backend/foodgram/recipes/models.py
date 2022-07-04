@@ -11,15 +11,15 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(max_length=200)
-    unit = models.CharField(max_length=200)
+    measurement_unit = models.CharField(max_length=200)
 
 
 class Recipe(models.Model):
     name = models.CharField(max_length=200, unique=True)
-    description = models.TextField()
+    text = models.TextField()
     image =  models.ImageField()
     cooking_time = models.IntegerField()
-    user = models.ForeignKey(User, 
+    author = models.ForeignKey(User, 
         on_delete=models.CASCADE,
         related_name='recipes')
     tags = models.ManyToManyField(
@@ -29,6 +29,7 @@ class Recipe(models.Model):
         Ingredient,
         through='RecipeIngredient',
         related_name='ingredients')
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
@@ -56,7 +57,7 @@ class Follow(models.Model):
         User, on_delete=models.CASCADE,
         related_name='follower'
     )
-    author = models.ForeignKey(
+    following = models.ForeignKey(
         User, on_delete=models.CASCADE,
         related_name='following'
     )
