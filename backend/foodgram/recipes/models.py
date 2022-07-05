@@ -31,10 +31,25 @@ class Recipe(models.Model):
         related_name='ingredients')
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return self.name
+
+
 class RecipeIngredient(models.Model):
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, db_index=True)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     amount = models.IntegerField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='one_uique_ingredient_per_recipe'
+            )
+        ]
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(

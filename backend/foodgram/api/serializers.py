@@ -3,6 +3,7 @@ import datetime as dt
 
 from django.core.files.base import ContentFile
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 from djoser.serializers import UserCreateSerializer
 
 from recipes.models import Tag, Recipe, Ingredient, RecipeIngredient, Follow
@@ -34,6 +35,9 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngredient
         fields = ('id','name','measurement_unit', 'amount')
+        validators = [
+            UniqueTogetherValidator(RecipeIngredient.objects.all(),fields=['recipe, ingredient'])
+        ]
 
 class UserCreateSerializer(UserCreateSerializer):
     class Meta:
