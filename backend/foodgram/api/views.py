@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Exists, OuterRef
 from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, status, filters
+from rest_framework import viewsets, status, filters, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from djoser.views import UserViewSet
@@ -57,8 +57,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def favorite(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
         if request.method == 'POST':
-            Favourite.objects.get_or_create(
+            _, created = Favourite.objects.get_or_create(
                 recipe=recipe, user=request.user)
+            if not created:
+                raise serializers.ValidationError(
+                    'The recipe is already in your favourites list')
             serializer = RecipeShortSerializer(instance=recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         favourite = get_object_or_404(
@@ -72,8 +75,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def shopping_cart(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
         if request.method == 'POST':
-            ShoppingCart.objects.get_or_create(
+            _, created = ShoppingCart.objects.get_or_create(
                 recipe=recipe, user=request.user)
+            if not created:
+                raise serializers.ValidationError(
+                    'The recipe is already in your shopping cart')
             serializer = RecipeShortSerializer(instance=recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         obj = get_object_or_404(
@@ -112,10 +118,15 @@ class UserViewSet(UserViewSet):
         following_id = kwargs['id']
         following = get_object_or_404(User, pk=following_id)
         if request.method == 'POST':
-            Follow.objects.get_or_create(user=user, following=following)
+            if following == user:
+                raise serializers.ValidationError('You cannot subscribe on yourself')
+            _, created = Follow.objects.get_or_create(user=user, following=following)
+            if not created:
+                raise serializers.ValidationError(
+                    'You are subscribed already on this user')
             context = {'request': request}
             serializer = SubscriptionSerializer(instance=following, context=context)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
         obj = get_object_or_404(Follow, user=user, following=following)
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

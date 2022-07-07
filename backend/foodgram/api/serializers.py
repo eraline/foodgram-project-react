@@ -32,12 +32,15 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         queryset=Ingredient.objects.all())
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(source='ingredient.measurement_unit')
+
     class Meta:
         model = RecipeIngredient
         fields = ('id','name','measurement_unit', 'amount')
-        validators = [
-            UniqueTogetherValidator(RecipeIngredient.objects.all(),fields=['recipe, ingredient'])
-        ]
+
+        # the below does not work :(
+        # validators = [
+        #     UniqueTogetherValidator(RecipeIngredient.objects.all(),fields=['recipe, ingredient'])
+        # ]
 
 class UserCreateSerializer(UserCreateSerializer):
     class Meta:
@@ -115,6 +118,16 @@ class RecipeSerializer(serializers.ModelSerializer):
             amount = ingredient.pop('amount')
             RecipeIngredient.objects.get_or_create(recipe=recipe, amount=amount, **ingredient)
         return recipe
+    
+    def validate_ingredients(self, ingredients):
+        map = set()
+        for obj in ingredients:
+            if obj['ingredient'].pk in map:
+                raise serializers.ValidationError('Ingredients cannot be the same')
+            if obj['amount'] <= 0:
+                raise serializers.ValidationError('Amount cannot be zero or less')
+            map.add(obj['ingredient'].pk)
+        return ingredients
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
@@ -152,3 +165,8 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             recipes = recipes[:recipes_limit]
         serializer = RecipeShortSerializer(recipes, many=True)
         return serializer.data
+    
+    def validate(self, obj):
+        user = self.object.user
+        obj = obj.following
+        return obj

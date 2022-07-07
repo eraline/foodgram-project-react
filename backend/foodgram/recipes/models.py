@@ -51,6 +51,7 @@ class RecipeIngredient(models.Model):
             )
         ]
 
+
 class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
@@ -58,6 +59,15 @@ class ShoppingCart(models.Model):
         db_index=True)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
         related_name='shopping_cart')
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_recipe_per_cart'
+            )
+        ]
+
 
 class Favourite(models.Model):
     user = models.ForeignKey(
@@ -66,7 +76,16 @@ class Favourite(models.Model):
         db_index=True
     )
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='favourites')
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_recipe_per_favourites'
+            )
+        ]
 
+    
 class Follow(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
@@ -76,3 +95,11 @@ class Follow(models.Model):
         User, on_delete=models.CASCADE,
         related_name='following'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'following'],
+                name='unique_user_following'
+            )
+        ]
