@@ -132,9 +132,10 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
-    ),
-    'PAGE_SIZE': 6,
-}
+    )
+    }
+
+DEFAULT_AUTO_FIELD='django.db.models.AutoField' 
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
