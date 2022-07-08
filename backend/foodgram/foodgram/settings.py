@@ -113,27 +113,22 @@ DJOSER = {
         'current_user': 'api.serializers.UserSerializer',
     },
     'PERMISSIONS': {
-    'activation': ['rest_framework.permissions.AllowAny'],
-    'password_reset': ['rest_framework.permissions.AllowAny'],
-    'password_reset_confirm': ['rest_framework.permissions.AllowAny'],
-    'set_password': ['rest_framework.permissions.CurrentUserOrAdmin'],
-    'username_reset': ['rest_framework.permissions.AllowAny'],
-    'username_reset_confirm': ['rest_framework.permissions.AllowAny'],
-    'set_username': ['rest_framework.permissions.CurrentUserOrAdmin'],
-    'user_create': ['rest_framework.permissions.AllowAny'],
-    'user_delete': ['rest_framework.permissions.IsAdminUser'],
-    'user': ['rest_framework.permissions.AllowAny'],
-    'user_list': ['rest_framework.permissions.AllowAny'],
-    'token_create': ['rest_framework.permissions.AllowAny'],
-    'token_destroy': ['rest_framework.permissions.IsAuthenticated'],
-},
+        'activation': ['rest_framework.permissions.AllowAny'],
+        'password_reset': ['rest_framework.permissions.AllowAny'],
+        'password_reset_confirm': ['rest_framework.permissions.AllowAny'],
+        'user_create': ['rest_framework.permissions.AllowAny'],
+        'user_delete': ['rest_framework.permissions.IsAdminUser'],
+        'user': ['rest_framework.permissions.AllowAny'],
+        'token_create': ['rest_framework.permissions.AllowAny'],
+        'token_destroy': ['rest_framework.permissions.IsAuthenticated'],
+    },
     'HIDE_USERS': False,
 }
 
 REST_FRAMEWORK = {
-    
+
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly', 
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
