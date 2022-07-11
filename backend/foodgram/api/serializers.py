@@ -3,7 +3,6 @@ import datetime as dt
 
 from django.core.files.base import ContentFile
 from django.db import transaction
-from django.core.validators import MinValueValidator
 from djoser.serializers import UserCreateSerializer
 from recipes.models import Follow, Ingredient, Recipe, RecipeIngredient, Tag
 from rest_framework import serializers

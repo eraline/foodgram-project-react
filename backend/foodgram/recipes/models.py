@@ -33,7 +33,7 @@ class Recipe(models.Model):
     text = models.TextField(verbose_name='Description')
     image = models.ImageField()
     cooking_time = models.PositiveIntegerField(
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(1)],
         verbose_name='Cooking time')
     author = models.ForeignKey(
         User,
@@ -59,9 +59,7 @@ class Recipe(models.Model):
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, db_index=True)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    amount = models.PositiveIntegerField(
-        validators=[MinValueValidator(0)]
-    )
+    amount = models.FloatField(verbose_name='Quantity')
 
     class Meta:
         constraints = [
