@@ -2,6 +2,8 @@ import base64
 import datetime as dt
 
 from django.core.files.base import ContentFile
+from django.db import transaction
+from django.core.validators import MinValueValidator
 from djoser.serializers import UserCreateSerializer
 from recipes.models import Follow, Ingredient, Recipe, RecipeIngredient, Tag
 from rest_framework import serializers
@@ -38,13 +40,6 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         model = RecipeIngredient
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
-        # the below does not work :(
-        # validators = [
-        #     UniqueTogetherValidator(
-        #           RecipeIngredient.objects.all(),
-        #           fields=['recipe, ingredient'])
-        # ]
-
 
 class UserCreateSerializer(UserCreateSerializer):
     class Meta:
@@ -65,8 +60,7 @@ class UserSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
         if not user.is_anonymous:
-            if Follow.objects.filter(user=user, following=obj).exists():
-                return True
+            return Follow.objects.filter(user=user, following=obj).exists()
         return False
 
 
@@ -107,27 +101,31 @@ class RecipeSerializer(serializers.ModelSerializer):
         representation['tags'] = result
         return representation
 
+    @transaction.atomic
     def create(self, validated_data):
         ingredients = validated_data.pop('recipeingredient_set')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
+        batch = []
         for ingredient in ingredients:
-            amount = ingredient.pop('amount')
-            RecipeIngredient.objects.get_or_create(
-                recipe=recipe, amount=amount, **ingredient)
+            batch.append(RecipeIngredient(
+                recipe=recipe, **ingredient))
+        RecipeIngredient.objects.bulk_create(batch)
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         ingredients = validated_data.pop('recipeingredient_set')
         tags = validated_data.pop('tags')
         recipe = instance
         recipe.tags.set(tags)
         RecipeIngredient.objects.filter(recipe=recipe).delete()
+        batch = []
         for ingredient in ingredients:
-            amount = ingredient.pop('amount')
-            RecipeIngredient.objects.get_or_create(
-                recipe=recipe, amount=amount, **ingredient)
+            batch.append(RecipeIngredient(
+                recipe=recipe, **ingredient))
+        RecipeIngredient.objects.bulk_create(batch)
         recipe.text = validated_data.get('text', recipe.text)
         recipe.name = validated_data.get('name', recipe.name)
         recipe.cooking_time = validated_data.get(
@@ -148,12 +146,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             map.add(obj['ingredient'].pk)
         return ingredients
 
-    def validate_cooking_time(self, cooking_time):
-        if cooking_time <= 0:
-            raise serializers.ValidationError(
-                'Cooking time cannot be zero or less')
-        return cooking_time
-
 
 class RecipeShortSerializer(serializers.ModelSerializer):
     class Meta:
@@ -162,7 +154,6 @@ class RecipeShortSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    # recipes = RecipeShortSerializer(many=True)
     recipes = serializers.SerializerMethodField()
     is_subscribed = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()

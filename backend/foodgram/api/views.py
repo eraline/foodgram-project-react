@@ -65,11 +65,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     'The recipe is already in your favourites list')
             serializer = RecipeShortSerializer(instance=recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        favourite = get_object_or_404(
-            Favourite,
-            recipe=recipe,
-            user=request.user)
-        favourite.delete()
+        Favourite.objects.filter(recipe=recipe, user=request.user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['post', 'delete'], detail=True)
@@ -83,11 +79,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     'The recipe is already in your shopping cart')
             serializer = RecipeShortSerializer(instance=recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        obj = get_object_or_404(
-            ShoppingCart,
-            recipe=recipe,
-            user=request.user)
-        obj.delete()
+        ShoppingCart.objects.filter(recipe=recipe, user=request.user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['get'], detail=False)
@@ -131,8 +123,7 @@ class UserViewSet(UserViewSet):
             serializer = SubscriptionSerializer(
                 instance=following, context=context)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        obj = get_object_or_404(Follow, user=user, following=following)
-        obj.delete()
+        Follow.objects.filter(user=user, following=following)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['get'], detail=False)

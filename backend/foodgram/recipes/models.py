@@ -1,12 +1,17 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 from users.models import User
 
 
 class Tag(models.Model):
     name = models.CharField(
+        verbose_name='Tag name',
         max_length=200,
         unique=True)
-    color = models.CharField(max_length=7, null=True)
+    color = models.CharField(
+        max_length=7,
+        null=True,
+        verbose_name='Colour in HEX format')
     slug = models.SlugField(null=True)
 
     def __str__(self):
@@ -14,22 +19,27 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    name = models.CharField(max_length=200)
-    measurement_unit = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, verbose_name='Ingredien name')
+    measurement_unit = models.CharField(
+        max_length=200, verbose_name='Measurement unit')
 
     def __str__(self):
         return self.name
 
 
 class Recipe(models.Model):
-    name = models.CharField(max_length=200, unique=True)
-    text = models.TextField()
+    name = models.CharField(
+        max_length=200, unique=True, verbose_name='Recipe Name')
+    text = models.TextField(verbose_name='Description')
     image = models.ImageField()
-    cooking_time = models.IntegerField()
+    cooking_time = models.PositiveIntegerField(
+        validators=[MinValueValidator(0)],
+        verbose_name='Cooking time')
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='recipes')
+        related_name='recipes',
+        verbose_name='Author of recipe')
     tags = models.ManyToManyField(
         Tag,
         related_name='tags')
@@ -49,7 +59,9 @@ class Recipe(models.Model):
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, db_index=True)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    amount = models.IntegerField()
+    amount = models.PositiveIntegerField(
+        validators=[MinValueValidator(0)]
+    )
 
     class Meta:
         constraints = [
@@ -64,7 +76,8 @@ class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        db_index=True)
+        db_index=True,
+        verbose_name='Shopping cart owner')
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
@@ -106,11 +119,13 @@ class Favourite(models.Model):
 class Follow(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        related_name='follower'
+        related_name='follower',
+        verbose_name='Follower'
     )
     following = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        related_name='following'
+        related_name='following',
+        verbose_name='Following'
     )
 
     class Meta:
