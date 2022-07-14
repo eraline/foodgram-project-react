@@ -123,7 +123,7 @@ class UserViewSet(UserViewSet):
             serializer = SubscriptionSerializer(
                 instance=following, context=context)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        Follow.objects.filter(user=user, following=following)
+        Follow.objects.filter(user=user, following=following).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['get'], detail=False)
