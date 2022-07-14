@@ -67,7 +67,7 @@ Run migrate
 python /app/manage.py migrate
 ```
 
-# Optional (load ingredients from dump)
+#### Optional (load ingredients from dump)
 
 In backend container run:
 ```
