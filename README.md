@@ -8,6 +8,9 @@ In the scope of the service you can:
 - Add recipes to shopping cart and download the shopping list
 
 Project is available at http://84.201.178.166/recipes
+
+> `Note:  Project is currently available in russian language only`
+
 Admin user: admin@mail.ru
 password: afiyetolsun
 
